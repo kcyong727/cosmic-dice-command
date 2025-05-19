@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Closest Wins! Timer Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #1a1a2e; /* Dark blue-purple background */
+            color: #e0e0e0; /* Light grey text */
+            display: flex;
+            flex-direction: column; /* Align items vertically */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .game-container {
+            background-color: #2a2a3e; /* Slightly lighter container background */
+            padding: 25px; /* Increased padding */
+            border-radius: 15px; /* More rounded corners */
+            box-shadow: 0 0 25px rgba(240, 79, 199, 0.5); /* Neon pink shadow */
+            text-align: center;
+            width: 100%;
+            max-width: 500px; /* Adjusted max width */
+        }
+        .timer-display {
+            font-size: 3rem; /* Larger timer text */
+            color: #00f0ff; /* Neon blue */
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #111; /* Dark background for timer */
+            border-radius: 10px;
+            border: 2px solid #00f0ff;
+        }
+        .btn {
+            font-family: 'Press Start 2P', cursive;
+            padding: 12px 20px;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            box-shadow: 0 4px #555;
+        }
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px #333;
+        }
+        .btn-primary {
+            background-color: #f079c7; /* Neon Pink */
+            color: #1a1a2e;
+        }
+        .btn-primary:hover {
+            background-color: #d968b3;
+        }
+        .btn-action { /* Style for the main round button */
+            width: 120px; /* Increased size */
+            height: 120px; /* Increased size */
+            border-radius: 50%; /* Makes it round */
+            font-size: 1.1rem; /* Adjusted font size */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1.2; /* For better text centering in circle */
+            padding: 10px; /* Reset padding or adjust as needed */
+            margin: 20px auto; /* Center the button and add margin */
+        }
+        .btn-start-style { /* Specific style for when it's a "Start" button */
+            background-color: #00ff7f; /* Neon green */
+            color: #1a1a2e;
+        }
+        .btn-start-style:hover {
+            background-color: #00e673;
+        }
+        .btn-stop-style { /* Specific style for when it's a "Stop" button */
+            background-color: #ff4757; /* Neon red */
+            color: #1a1a2e;
+        }
+        .btn-stop-style:hover {
+            background-color: #e04050;
+        }
+        .btn-reset {
+            background-color: #f0f0f0; /* Light grey */
+            color: #1a1a2e;
+            width: calc(100% - 10px); /* Make reset button full width */
+            max-width: 300px; /* Max width for reset button */
+            margin-top: 15px;
+        }
+        .btn-reset:hover {
+            background-color: #dcdcdc;
+        }
+        .btn:disabled {
+            background-color: #555 !important; /* Ensure disabled style overrides */
+            color: #888 !important;
+            cursor: not-allowed;
+            box-shadow: 0 4px #333;
+        }
+        .results-area, .message-area {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            min-height: 50px;
+        }
+        .player-result {
+            margin: 5px 0;
+            color: #f0f0f0;
+        }
+        .target-time {
+            font-size: 1.2rem;
+            color: #ffab00; /* Amber color for target */
+            margin-bottom: 15px;
+        }
+        h1 {
+            color: #f079c7; /* Neon pink for title */
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        .name-entry-section {
+            margin-bottom: 20px;
+        }
+        .name-entry-section input[type="text"] {
+            font-family: 'Press Start 2P', cursive;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 2px solid #00f0ff;
+            background-color: #111;
+            color: #e0e0e0;
+            text-align: center;
+            width: calc(50% - 14px);
+        }
+        .name-entry-section input[type="text"]::placeholder {
+            color: #888;
+        }
+        .controls { /* Container for the action button */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .footer-credit { /* Style for the credit text */
+            margin-top: 30px; /* Space above the credit */
+            font-size: 0.75rem; /* Smaller font size for credit */
+            color: #aaa; /* Lighter grey for credit */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .timer-display { font-size: 2.5rem; }
+            h1 { font-size: 1.5rem; }
+            .btn { padding: 10px 15px; font-size: 0.9rem; }
+            .btn-action { width: 100px; height: 100px; font-size: 1rem; }
+            .name-entry-section input[type="text"] {
+                width: calc(100% - 14px);
+                margin-bottom: 10px;
+            }
+            .btn-primary { width: calc(100% - 10px); }
+            .footer-credit { font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Closest Wins!</h1>
+        
+        <div id="nameEntrySection" class="name-entry-section">
+            <div>
+                <input type="text" id="player1NameInput" placeholder="P1 Name">
+                <input type="text" id="player2NameInput" placeholder="P2 Name">
+            </div>
+            <button id="setNamesButton" class="btn btn-primary">Set Names & Start</button>
+        </div>
+
+        <div id="gameArea" style="display: none;">
+            <div class="target-time">Target: <span id="targetTimeDisplay">3.00</span> seconds</div>
+            <div class="timer-display" id="timerDisplay">0.00</div>
+            
+            <div class="controls">
+                <button id="actionButton" class="btn btn-action btn-start-style">Start</button>
+            </div>
+            
+            <button id="resetButton" class="btn btn-reset" disabled>Reset Game</button>
+            
+            <div class="message-area" id="messageArea"></div>
+            <div class="results-area">
+                <div class="player-result" id="player1ResultDisplay">Player 1: ---</div>
+                <div class="player-result" id="player2ResultDisplay">Player 2: ---</div>
+            </div>
+        </div>
+        <div class="footer-credit">created by CHUN727</div> </div>
+
+    <script>
+        // Game constants and variables
+        const TARGET_SECONDS = 3.00;
+        let currentPlayer = 1;
+        let player1Time = null;
+        let player2Time = null;
+        let timerInterval = null;
+        let startTime = 0;
+        let timerRunning = false;
+        let player1Name = "Player 1";
+        let player2Name = "Player 2";
+
+        // DOM Elements
+        const timerDisplay = document.getElementById('timerDisplay');
+        const actionButton = document.getElementById('actionButton'); // Combined Start/Stop button
+        const resetButton = document.getElementById('resetButton');
+        const messageArea = document.getElementById('messageArea');
+        const player1ResultDisplay = document.getElementById('player1ResultDisplay');
+        const player2ResultDisplay = document.getElementById('player2ResultDisplay');
+        const targetTimeDisplay = document.getElementById('targetTimeDisplay');
+
+        const nameEntrySection = document.getElementById('nameEntrySection');
+        const gameArea = document.getElementById('gameArea');
+        const player1NameInput = document.getElementById('player1NameInput');
+        const player2NameInput = document.getElementById('player2NameInput');
+        const setNamesButton = document.getElementById('setNamesButton');
+
+        // Initialize game - Show name entry first
+        function initGame() {
+            nameEntrySection.style.display = 'block';
+            gameArea.style.display = 'none';
+            player1NameInput.value = ''; // Clear name inputs
+            player2NameInput.value = '';
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+             // Reset default names in case they were changed and game is reset before playing
+            player1Name = "Player 1";
+            player2Name = "Player 2";
+        }
+
+        // Function to actually start the timed game part
+        function startGamePlay() {
+            nameEntrySection.style.display = 'none';
+            gameArea.style.display = 'block';
+
+            targetTimeDisplay.textContent = TARGET_SECONDS.toFixed(2);
+            timerDisplay.textContent = "0.00";
+            
+            player1ResultDisplay.textContent = `${player1Name}: ---`;
+            player2ResultDisplay.textContent = `${player2Name}: ---`;
+            
+            currentPlayer = 1;
+            player1Time = null;
+            player2Time = null;
+            timerRunning = false;
+
+            actionButton.textContent = "Start";
+            actionButton.classList.remove('btn-stop-style');
+            actionButton.classList.add('btn-start-style');
+            actionButton.disabled = false;
+            
+            resetButton.disabled = true; 
+
+            messageArea.textContent = `${player1Name}: Press Start`;
+        }
+
+        // Event listener for setting names
+        setNamesButton.addEventListener('click', () => {
+            player1Name = player1NameInput.value.trim() || "Player 1";
+            player2Name = player2NameInput.value.trim() || "Player 2";
+            startGamePlay();
+        });
+
+        // Update timer display
+        function updateTimer() {
+            const elapsedTime = (performance.now() - startTime) / 1000;
+            timerDisplay.textContent = elapsedTime.toFixed(2);
+        }
+
+        // Handle Action Button (Start/Stop) Click
+        actionButton.addEventListener('click', () => {
+            if (!timerRunning) { // If timer is not running, this click is a "Start" action
+                timerRunning = true;
+                startTime = performance.now();
+                timerInterval = setInterval(updateTimer, 10); 
+
+                actionButton.textContent = "Stop";
+                actionButton.classList.remove('btn-start-style');
+                actionButton.classList.add('btn-stop-style');
+                resetButton.disabled = true; 
+                
+                const currentTurnPlayerName = (currentPlayer === 1) ? player1Name : player2Name;
+                messageArea.textContent = `${currentTurnPlayerName}: Timing... GO!`;
+
+            } else { // If timer is running, this click is a "Stop" action
+                clearInterval(timerInterval);
+                timerInterval = null;
+                timerRunning = false;
+                const stoppedTime = parseFloat(timerDisplay.textContent);
+
+                if (currentPlayer === 1) {
+                    player1Time = stoppedTime;
+                    player1ResultDisplay.textContent = `${player1Name}: ${player1Time.toFixed(2)}s`;
+                    messageArea.textContent = `${player2Name}: Press Start`;
+                    currentPlayer = 2;
+                    timerDisplay.textContent = "0.00"; 
+                    
+                    actionButton.textContent = "Start";
+                    actionButton.classList.remove('btn-stop-style');
+                    actionButton.classList.add('btn-start-style');
+                    // actionButton remains enabled for Player 2
+                } else { // Player 2's turn just ended
+                    player2Time = stoppedTime;
+                    player2ResultDisplay.textContent = `${player2Name}: ${player2Time.toFixed(2)}s`;
+                    determineWinner();
+                    actionButton.disabled = true; // Disable action button until reset
+                    resetButton.disabled = false; // Enable reset
+                }
+            }
+        });
+
+        // Handle Reset Button Click - goes back to name entry
+        resetButton.addEventListener('click', () => {
+            initGame();
+        });
+
+        // Determine the winner
+        function determineWinner() {
+            const diff1 = Math.abs(player1Time - TARGET_SECONDS);
+            const diff2 = Math.abs(player2Time - TARGET_SECONDS);
+
+            let winnerMessage = "";
+            if (player1Time === null || player2Time === null) { 
+                winnerMessage = "Error: Both players need to complete their turn.";
+            } else if (diff1 < diff2) {
+                winnerMessage = `${player1Name} Wins! (Off by ${diff1.toFixed(2)}s)`;
+            } else if (diff2 < diff1) {
+                winnerMessage = `${player2Name} Wins! (Off by ${diff2.toFixed(2)}s)`;
+            } else { // Tie
+                winnerMessage = `It's a Tie! Both off by ${diff1.toFixed(2)}s`;
+            }
+            messageArea.textContent = `${winnerMessage} Press 'Reset Game' to play again.`;
+        }
+
+        // Initial setup when the page loads
+        window.onload = () => {
+            initGame();
+        };
+    </script>
+</body>
+</html>
