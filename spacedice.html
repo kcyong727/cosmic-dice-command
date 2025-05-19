@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Dice Command</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #000011 url('https://www.transparenttextures.com/patterns/stardust.png'); /* Dark blue/black with subtle stars */
+            color: #E0E0E0; /* Light silver/gray for text */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .game-title {
+            font-family: 'Orbitron', sans-serif; /* Sci-fi font for title */
+            color: #00FFFF; /* Cyan */
+            text-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF, 0 0 15px #00BFFF; /* Glowing effect */
+            font-size: 2.5rem; /* Adjusted size */
+        }
+        .game-container {
+            background-color: rgba(10, 25, 50, 0.85); /* Dark semi-transparent blue */
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #00A8FF; /* Bright blue border */
+            box-shadow: 0 0 20px rgba(0, 168, 255, 0.6), inset 0 0 15px rgba(0, 168, 255, 0.3);
+            text-align: center;
+            width: 100%;
+            max-width: 550px;
+            position: relative;
+        }
+        .scores {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-size: 1.25rem;
+            font-family: 'Orbitron', sans-serif;
+            color: #FFFFFF;
+        }
+        .scores span { /* Score numbers */
+            color: #00FF00; /* Neon Green */
+            text-shadow: 0 0 3px #00FF00;
+        }
+        .dice-area {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            min-height: 100px;
+        }
+        .dice-container p {
+            font-family: 'Roboto', sans-serif;
+            color: #B0C4DE; /* Light Steel Blue */
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        .dice { /* "Energy Cubes" */
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #334477, #112244); /* Dark blue gradient */
+            color: #00FF00; /* Neon Green pips */
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #00A8FF;
+            box-shadow: 0 0 10px #00A8FF, inset 0 0 5px rgba(0,168,255,0.5);
+            overflow: hidden;
+        }
+        .dot { /* "Energy Pips" */
+            width: 12px;
+            height: 12px;
+            background-color: #00FF00; /* Neon Green */
+            border-radius: 50%;
+            box-shadow: 0 0 5px #00FF00, 0 0 8px #00FF00; /* Glowing pips */
+        }
+        .btn {
+            font-family: 'Orbitron', sans-serif; /* Sci-fi font for buttons */
+            font-weight: bold;
+            color: #FFFFFF;
+            padding: 12px 24px;
+            border: 2px solid; /* Border color set by specific button class */
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 8px rgba(0,0,0,0.3);
+            margin-top: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            background-color: transparent; /* Transparent base for gradient/solid color overlay */
+        }
+        .btn-roll { /* This was .btn-start-sequence, reverting to .btn-roll */
+            border-color: #00FF00; /* Neon Green border */
+            color: #00FF00;
+            text-shadow: 0 0 5px #00FF00;
+        }
+        .btn-roll:hover {
+            background-color: rgba(0, 255, 0, 0.2); /* Neon Green glow */
+            box-shadow: 0 0 15px #00FF00;
+        }
+        .btn-double-bet {
+            border-color: #FF00FF; /* Magenta border */
+            color: #FF00FF;
+            text-shadow: 0 0 5px #FF00FF;
+        }
+        .btn-double-bet:hover {
+            background-color: rgba(255, 0, 255, 0.2); /* Magenta glow */
+            box-shadow: 0 0 15px #FF00FF;
+        }
+        .btn:disabled {
+            border-color: #555555;
+            color: #777777;
+            cursor: not-allowed;
+            opacity: 0.5;
+            box-shadow: none;
+            background-color: rgba(50,50,50,0.3);
+        }
+        .message-box {
+            min-height: 55px;
+            margin-top: 25px;
+            font-size: 1rem;
+            color: #00FFFF; /* Cyan for messages */
+            font-style: italic;
+        }
+        .winner-message { color: #00FF00; font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 7px #00FF00; }
+        .loser-message { color: #FF4136; font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 7px #FF4136; }
+        .tie-message { color: #FFDC00; font-weight: bold; text-shadow: 0 0 7px #FFDC00;}
+
+        .dice-face { width: 100%; height: 100%; display: grid; padding: 10px; box-sizing: border-box; }
+        .face-1 { grid-template-areas: ". . ." ". c ." ". . ."; justify-items: center; align-items: center; }
+        .face-2 { grid-template-areas: "a . ." ". . ." ". . b"; justify-items: center; align-items: center; }
+        .face-3 { grid-template-areas: "a . ." ". c ." ". . b"; justify-items: center; align-items: center; }
+        .face-4 { grid-template-areas: "a . b" ". . ." "c . d"; justify-items: center; align-items: center; }
+        .face-5 { grid-template-areas: "a . b" ". c ." "d . e"; justify-items: center; align-items: center; }
+        .face-6 { grid-template-areas: "a . b" "c . d" "e . f"; justify-items: center; align-items: center; }
+        .face-1 .dot:nth-child(1) { grid-area: c; }
+        .face-2 .dot:nth-child(1) { grid-area: a; } .face-2 .dot:nth-child(2) { grid-area: b; align-self: end; justify-self: end;}
+        .face-3 .dot:nth-child(1) { grid-area: a; } .face-3 .dot:nth-child(2) { grid-area: c; } .face-3 .dot:nth-child(3) { grid-area: b; align-self: end; justify-self: end;}
+        .face-4 .dot:nth-child(1) { grid-area: a; } .face-4 .dot:nth-child(2) { grid-area: b; justify-self: end;} .face-4 .dot:nth-child(3) { grid-area: c; align-self: end;} .face-4 .dot:nth-child(4) { grid-area: d; align-self: end; justify-self: end;}
+        .face-5 .dot:nth-child(1) { grid-area: a; } .face-5 .dot:nth-child(2) { grid-area: b; justify-self: end;} .face-5 .dot:nth-child(3) { grid-area: c; } .face-5 .dot:nth-child(4) { grid-area: d; align-self: end;} .face-5 .dot:nth-child(5) { grid-area: e; align-self: end; justify-self: end;}
+        .face-6 .dot:nth-child(1) { grid-area: a; } .face-6 .dot:nth-child(2) { grid-area: b; justify-self: end;} .face-6 .dot:nth-child(3) { grid-area: c; } .face-6 .dot:nth-child(4) { grid-area: d; justify-self: end;} .face-6 .dot:nth-child(5) { grid-area: e; } .face-6 .dot:nth-child(6) { grid-area: f; justify-self: end;}
+
+        #name-input-section { padding: 20px; background-color: rgba(0,0,0,0.4); border-radius: 10px; border: 1px solid #0077B6; }
+        #name-input-section input { background-color: rgba(0,0,0,0.5); border: 1px solid #00A8FF; color: #FFFFFF; padding: 12px; border-radius: 5px; width: calc(100% - 24px); margin-bottom: 15px; font-size: 1rem; font-family: 'Roboto', sans-serif; }
+        #name-input-section input::placeholder { color: #B0C4DE; opacity: 0.7; }
+        #name-input-section label { color: #00A8FF; font-weight: bold; font-family: 'Orbitron', sans-serif; }
+        #start-game-button { border-color: #00FFFF; color: #00FFFF; text-shadow: 0 0 5px #00FFFF; }
+        #start-game-button:hover { background-color: rgba(0, 255, 255, 0.2); box-shadow: 0 0 15px #00FFFF; }
+
+        #round-value-display { font-size: 1.2rem; color: #00FF00; margin-bottom: 20px; font-weight: bold; text-shadow: 0 0 5px #00FF00; font-family: 'Orbitron', sans-serif; }
+        #restart-icon-button { position: absolute; top: 15px; right: 15px; background-color: transparent; border: 2px solid #FF00FF; border-radius: 50%; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        #restart-icon-button:hover { background-color: rgba(255, 0, 255, 0.2); transform: rotate(360deg); box-shadow: 0 0 10px #FF00FF; }
+        #restart-icon-button svg { width: 20px; height: 20px; fill: #FF00FF; }
+
+        @media (max-width: 480px) {
+            .game-title { font-size: 2rem; }
+            .scores { font-size: 1rem; }
+            .dice { width: 65px; height: 65px;}
+            .dot { width: 10px; height: 10px; }
+            .btn { font-size: 0.9rem; padding: 10px 18px; letter-spacing: 1px;}
+            .message-box { font-size: 0.9rem; }
+            #round-value-display { font-size: 1rem; }
+            #restart-icon-button svg { width: 18px; height: 18px; }
+            #restart-icon-button { top: 10px; right: 10px; padding: 6px;}
+            .game-container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <button id="restart-icon-button" class="hidden" title="Restart System">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+            </svg>
+        </button>
+
+        <h1 class="text-3xl font-bold mb-6 text-center game-title">Cosmic Dice Command</h1>
+
+        <div id="name-input-section" class="mb-6">
+            <label for="player-name-input" class="block mb-2 text-sm font-medium">Enter Callsign:</label>
+            <input type="text" id="player-name-input" placeholder="Star Commander" class="w-full">
+            <button id="start-game-button" class="btn w-full mt-2">Engage</button>
+        </div>
+
+        <div id="game-content-wrapper" class="hidden">
+            <div class="scores">
+                <div><span id="player-name-label">Pilot</span>: <span id="player-score">0</span></div>
+                <div>System CPU: <span id="computer-score">0</span></div>
+            </div>
+
+            <div id="round-value-display">Energy Stake: 1 Unit</div>
+
+            <div class="dice-area">
+                <div class="dice-container">
+                    <p>Your Scan</p>
+                    <div class="dice" id="player-dice"><div class="dice-face"></div></div>
+                </div>
+                <div class="dice-container">
+                    <p>CPU Scan</p>
+                    <div class="dice" id="computer-dice"><div class="dice-face"></div></div>
+                </div>
+            </div>
+
+            <button id="roll-button" class="btn btn-roll w-full">Activate Scanners</button>
+            <button id="double-bet-button" class="btn btn-double-bet w-full">Boost Signal</button>
+            
+            <div id="message" class="message-box">
+                Enter your callsign to begin transmission.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state variables
+        let playerScore = 0;
+        let computerScore = 0;
+        const winningScore = 11;
+        let isRolling = false; // Flag for animations
+        let playerName = "Pilot";
+        let currentRoundValue = 1;
+        let canDoubleBet = true;
+
+        // DOM elements
+        const playerScoreDisplay = document.getElementById('player-score');
+        const computerScoreDisplay = document.getElementById('computer-score');
+        const playerDiceDisplay = document.getElementById('player-dice');
+        const computerDiceDisplay = document.getElementById('computer-dice');
+        const rollButton = document.getElementById('roll-button'); // Reverted from startSequenceButton
+        const messageDisplay = document.getElementById('message');
+        const nameInputSection = document.getElementById('name-input-section');
+        const gameContentWrapper = document.getElementById('game-content-wrapper');
+        const playerNameInput = document.getElementById('player-name-input');
+        const playerNameLabel = document.getElementById('player-name-label');
+        const startGameButton = document.getElementById('start-game-button');
+        const roundValueDisplay = document.getElementById('round-value-display');
+        const restartIconButton = document.getElementById('restart-icon-button');
+        const doubleBetButton = document.getElementById('double-bet-button');
+
+        // --- Initialize dice display on load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            displayDice(1, playerDiceDisplay);
+            displayDice(1, computerDiceDisplay);
+            playerNameInput.focus();
+            messageDisplay.textContent = 'Awaiting pilot callsign...';
+        });
+
+        // --- Start Game Button Event Listener ---
+        startGameButton.addEventListener('click', () => {
+            const nameFromInput = playerNameInput.value.trim();
+            playerName = nameFromInput || "Star Commander"; // Sci-fi themed default name
+            playerNameLabel.textContent = playerName;
+            nameInputSection.classList.add('hidden');
+            gameContentWrapper.classList.remove('hidden');
+            restartIconButton.classList.remove('hidden'); // Show restart icon
+            initializeNewGame();
+        });
+
+        // --- Function to Initialize or Reset Game State ---
+        function initializeNewGame() {
+            playerScore = 0;
+            computerScore = 0;
+            currentRoundValue = 1;
+            canDoubleBet = true; // Reset ability to double bet
+
+            playerScoreDisplay.textContent = playerScore;
+            computerScoreDisplay.textContent = computerScore;
+            updateRoundValueDisplay(); // Use a function for clarity
+
+            displayDice(1, playerDiceDisplay); // Show initial "1" pip
+            displayDice(1, computerDiceDisplay);
+
+            messageDisplay.textContent = `${playerName}, prepare for scan activation!`;
+            messageDisplay.className = 'message-box'; // Reset class
+
+            rollButton.disabled = false;
+            rollButton.classList.remove('hidden');
+            doubleBetButton.disabled = false; // Enable double bet button
+            doubleBetButton.classList.remove('hidden'); // Ensure it's visible
+            restartIconButton.disabled = false; // Ensure restart is enabled
+
+            isRolling = false;
+        }
+
+        // --- Update Round Value Display ---
+        function updateRoundValueDisplay() {
+            roundValueDisplay.textContent = `Energy Stake: ${currentRoundValue} Unit(s)`;
+        }
+
+        // --- Dice Display Function (draws pips on the "energy cubes") ---
+        function displayDice(roll, diceElement) {
+            diceElement.innerHTML = ''; // Clear previous
+            const diceFace = document.createElement('div');
+            diceFace.classList.add('dice-face', `face-${roll}`);
+            for (let i = 0; i < roll; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('dot');
+                diceFace.appendChild(dot);
+            }
+            diceElement.appendChild(diceFace);
+        }
+
+        // --- Dice Rolling Animation Function ---
+        function rollDiceAnimation(diceElement, finalRoll, callback) {
+            // isRolling is set true by the caller (rollButton event listener)
+            let iteration = 0;
+            const maxIterations = 12; // Number of "flickers"
+            const intervalTime = 80;  // Speed of flickers
+            const animationInterval = setInterval(() => {
+                displayDice(Math.floor(Math.random() * 6) + 1, diceElement);
+                iteration++;
+                if (iteration >= maxIterations) {
+                    clearInterval(animationInterval);
+                    displayDice(finalRoll, diceElement);
+                    if (callback) callback(); // Execute callback after this die's animation is done
+                }
+            }, intervalTime);
+        }
+
+        // --- Event Listener for "Activate Scanners" (Roll) Button ---
+        rollButton.addEventListener('click', () => {
+            if (isRolling) return; // Prevent clicking again while rolling
+
+            isRolling = true; // Set flag at the beginning of the roll process
+            rollButton.disabled = true;
+            doubleBetButton.disabled = true; // Disable double bet during roll
+            restartIconButton.disabled = true; // Disable restart during roll animation
+
+            messageDisplay.textContent = "Scanning sector...";
+            messageDisplay.className = 'message-box'; // Reset message class
+
+            const playerFinalRoll = Math.floor(Math.random() * 6) + 1;
+            const computerFinalRoll = Math.floor(Math.random() * 6) + 1;
+
+            let playerAnimationDone = false;
+            let computerAnimationDone = false;
+
+            // Function to check if both animations are done, then process results
+            function checkAnimationsComplete() {
+                if (playerAnimationDone && computerAnimationDone) {
+                    // All animations are done, now process results
+                    if (playerFinalRoll > computerFinalRoll) {
+                        playerScore += currentRoundValue;
+                        messageDisplay.textContent = `Scan successful, ${playerName}! You detected ${playerFinalRoll}, CPU detected ${computerFinalRoll}. You gain ${currentRoundValue} energy unit(s)!`;
+                        messageDisplay.className = 'message-box winner-message';
+                        currentRoundValue = 1; // Reset for next round
+                        canDoubleBet = true; // Allow doubling for next round
+                    } else if (computerFinalRoll > playerFinalRoll) {
+                        computerScore += currentRoundValue;
+                        messageDisplay.textContent = `System override! CPU detected ${computerFinalRoll}, ${playerName} detected ${playerFinalRoll}. CPU gains ${currentRoundValue} energy unit(s)!`;
+                        messageDisplay.className = 'message-box loser-message';
+                        currentRoundValue = 1; // Reset for next round
+                        canDoubleBet = true; // Allow doubling for next round
+                    } else {
+                        // On a tie, the bet carries over and is automatically doubled for the next round.
+                        messageDisplay.textContent = `Anomaly detected! Both scans show ${playerFinalRoll}. Energy stake of ${currentRoundValue} carries over. Next scan sequence boosted to ${currentRoundValue * 2} units!`;
+                        currentRoundValue *= 2; // The stake for the next round is doubled.
+                        messageDisplay.className = 'message-box tie-message';
+                        canDoubleBet = true; // Allow doubling the new tied value
+                    }
+
+                    updateRoundValueDisplay();
+                    playerScoreDisplay.textContent = playerScore;
+                    computerScoreDisplay.textContent = computerScore;
+                    
+                    checkWinner(); // Check for game end
+
+                    // Re-enable buttons only if game is not over
+                    if (playerScore < winningScore && computerScore < winningScore) {
+                        rollButton.disabled = false;
+                        doubleBetButton.disabled = !canDoubleBet; // Enable if allowed, disable if already used this turn
+                        restartIconButton.disabled = false;
+                    } else {
+                        // Game ended, roll and double bet remain disabled by checkWinner/endGame
+                        // ensure restart is enabled
+                        restartIconButton.disabled = false;
+                    }
+                    isRolling = false; // Clear flag after all processing is done
+                }
+            }
+
+            // Start dice rolling animations
+            rollDiceAnimation(playerDiceDisplay, playerFinalRoll, () => {
+                playerAnimationDone = true;
+                if (computerAnimationDone) checkAnimationsComplete(); // Check if other die is also done
+            });
+            rollDiceAnimation(computerDiceDisplay, computerFinalRoll, () => {
+                computerAnimationDone = true;
+                if (playerAnimationDone) checkAnimationsComplete(); // Check if other die is also done
+            });
+        });
+
+        // --- Event Listener for Double Bet Button ("Boost Signal") ---
+        doubleBetButton.addEventListener('click', () => {
+            if (isRolling || !canDoubleBet) return; // Can't double if rolling or already doubled this stake
+
+            currentRoundValue *= 2;
+            canDoubleBet = false; // Can only double once per stake
+            doubleBetButton.disabled = true; // Disable after use for this stake
+            updateRoundValueDisplay();
+            messageDisplay.textContent = `${playerName} boosted the signal! Energy stake is now ${currentRoundValue} unit(s). Activate scanners!`;
+            messageDisplay.className = 'message-box tie-message'; // Use yellow/gold for emphasis
+        });
+        
+        // --- Function to Check for Winner ---
+        function checkWinner() {
+            if (playerScore >= winningScore) {
+                messageDisplay.innerHTML = `<span class="winner-message">HYPERSPACE VICTORY! ${playerName}, you've conquered the sector with ${playerScore} energy units!</span>`;
+                endGame();
+            } else if (computerScore >= winningScore) {
+                messageDisplay.innerHTML = `<span class="loser-message">SYSTEM CRITICAL! CPU has dominated the sector with ${computerScore} energy units. Recalibrate, ${playerName}!</span>`;
+                endGame();
+            }
+        }
+
+        // --- Function to End the Game ---
+        function endGame() {
+            rollButton.disabled = true;
+            rollButton.classList.add('hidden'); // Hide roll button
+            doubleBetButton.disabled = true;
+            doubleBetButton.classList.add('hidden'); // Also hide double bet button at game end
+            restartIconButton.disabled = false; // Ensure restart is enabled
+            isRolling = false; // Ensure rolling flag is cleared
+        }
+
+        // --- Event Listener for Restart Icon Button ---
+        restartIconButton.addEventListener('click', () => {
+            if (isRolling) return; // Prevent restart during active roll animation
+            initializeNewGame();
+        });
+
+    </script>
+</body>
+</html>
